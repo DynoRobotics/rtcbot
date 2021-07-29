@@ -13,6 +13,8 @@ import fractions
 import time
 import asyncio
 
+import cv2
+
 import numpy as np
 from .subscriptions import (
     RebatchSubscription,
@@ -313,8 +315,14 @@ class VideoReceiver(BaseSubscriptionProducer):
         while not self._shouldClose:
 
             # Decode the frame
-            data = videoFrame.to_rgb().to_ndarray()
-            data = data[..., ::-1]  # cv2.cvtColor(data, cv2.COLOR_RGB2BGR)
+            # swscalser: No accelerated colorspace conversion found from yuv420p to rgb24. <= On jetson
+
+            # data = videoFrame.to_rgb().to_ndarray()
+            # data = data[..., ::-1]  # cv2.cvtColor(data, cv2.COLOR_RGB2BGR)
+
+            data = videoFrame.to_ndarray()
+            data = cv2.cvtColor(data, cv2.COLOR_YUV2BGR_I420)
+
             self._log.debug("Received %s frame", data.shape)
             self._put_nowait(data)
 
